@@ -25,18 +25,14 @@ class Base(object):
 
         self.manager = manager
 
-    def _create_session(self, method='POST'):
+    def _create_session(self):
         """
         create a session object
         """
 
         session = requests.Session()
         session.auth = (self.manager.username, self.manager.password)
-        session.headers = {
-            'User-Agent': 'Python-icingadirectorapi/{0}'.format(self.manager.version),
-            'X-HTTP-Method-Override': method.upper(),
-            'Accept': 'application/json'
-        }
+        session.headers = {'Accept': 'application/json'}
 
         return session
 
@@ -58,10 +54,11 @@ class Base(object):
         LOG.debug("Request URL: %s", request_url)
 
         # create session
-        session = self._create_session(method)
+        session = self._create_session()
 
         # create arguments for the request
         request_args = {
+            'method': method,
             'url': request_url,
             'verify': False
         }
@@ -69,7 +66,7 @@ class Base(object):
             request_args['json'] = payload
 
         # do the request
-        response = session.post(**request_args)
+        response = session.request(**request_args)
 
         if not 200 <= response.status_code <= 299:
             raise IcingaDirectorApiRequestException(
