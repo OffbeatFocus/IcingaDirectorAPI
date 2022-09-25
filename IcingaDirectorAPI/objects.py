@@ -232,3 +232,6 @@ class Objects(Base):
             url_path = f'{self.base_url_path}/{object_type_url_path}'
 
         return self._request('DELETE', url_path)
+
+# TODO: add filter to only list commands or commandtemplates (same endpoint)
+# TODO: add id-lookup method for handling serviceapplyrules (name does not work)

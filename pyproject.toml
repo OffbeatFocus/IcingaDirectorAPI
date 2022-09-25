@@ -3,8 +3,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "IcingaDirectorAPI5"
-version = "0.1.5"
+name = "IcingaDirectorAPI"
+version = "0.0.1"
 authors = [
   { name="Offbeat Focus", email="offbeatfocus@protonmail.com" },
 ]

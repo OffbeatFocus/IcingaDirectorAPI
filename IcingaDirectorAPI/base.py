@@ -58,7 +58,6 @@ class Base(object):
 
         # create arguments for the request
         request_args = {
-            'method': method,
             'url': request_url,
             'verify': False
         }
@@ -66,7 +65,7 @@ class Base(object):
             request_args['json'] = payload
 
         # do the request
-        response = session.request(**request_args)
+        response = session.request(method, **request_args)
 
         if not 200 <= response.status_code <= 299:
             raise IcingaDirectorApiRequestException(
