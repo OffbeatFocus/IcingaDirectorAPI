@@ -1,12 +1,12 @@
 [build-system]
-requires = ["hatchling", "requests"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
 name = "IcingaDirectorAPI"
 version = "0.1"
 authors = [
-  { name="Stefan Rutschke", email="offbeatfocus@protonmail.com" },
+  { name="Offbeat Focus", email="offbeatfocus@protonmail.com" },
 ]
 description = "Python library for the Icinga Director RESTful API"
 readme = "README.md"

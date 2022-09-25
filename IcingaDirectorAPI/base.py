@@ -6,7 +6,7 @@ Icinga Director API client base
 import logging
 import requests
 from urllib.parse import urljoin
-from exceptions import *
+from IcingaDirectorAPI.exceptions import *
 
 LOG = logging.getLogger(__name__)
 

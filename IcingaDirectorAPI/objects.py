@@ -5,8 +5,8 @@ Icinga Director API client base
 
 import logging
 
-from base import Base
-from exceptions import IcingaDirectorApiException
+from IcingaDirectorAPI.base import Base
+from IcingaDirectorAPI.exceptions import IcingaDirectorApiException
 
 LOG = logging.getLogger(__name__)
 
