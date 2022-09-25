@@ -88,7 +88,7 @@ class Objects(Base):
             object_type_url_path = object_type_url_path.replace('&', splitnames[0] + '&') + splitnames[1]
             url_path = f'{self.base_url_path}/{object_type_url_path}'
 
-        return self._request('GET', url_path)['results']
+        return self._request('GET', url_path)['objects']
 
     def list(self,
              object_type,
@@ -117,7 +117,7 @@ class Objects(Base):
         if query:
             url_path += f'?q={query}'
 
-        return self._request('GET', url_path)['results']
+        return self._request('GET', url_path)['objects']
 
     def create(self,
                object_type,
