@@ -42,8 +42,7 @@ class Objects(Base):
             'User',
             'UserGroup',
             'UserTemplate',
-            'Zone',
-            'SeApRuList'
+            'Zone'
         ]
 
         if object_type not in allowed_types:
@@ -57,8 +56,6 @@ class Objects(Base):
                 return object_type.lower().replace('template', 's/templates')
             elif object_type == 'Notification' or object_type == 'ServiceApplyRule':
                 return object_type.replace('ApplyRule', '').lower() + 's/applyrules'
-            elif object_type == 'SeApRuList':
-                return "serviceapplyrules"
             else:
                 return object_type.lower() + 's'
         elif mode == 'create' or mode == 'delete' or mode == 'get' or mode == 'modify':
@@ -90,7 +87,8 @@ class Objects(Base):
         get internal id of serviceapplyrule by given name
         """
 
-        applyrules: list = [a for a in self.list('SeApRuList') if a['object_name'] == name]
+        applyrules: list = [a for a in self._request('GET', f'{self.base_url_path}/serviceapplyrules')['objects']
+                            if a['object_name'] == name]
         found_rules: int = len(applyrules)
         if found_rules == 1:
             return applyrules.pop()['id']
