@@ -12,7 +12,7 @@ from IcingaDirectorAPI import __version__
 LOG = logging.getLogger(__name__)
 
 
-class Client(object):
+class Director(object):
     """
     Icinga Director Client class
     """

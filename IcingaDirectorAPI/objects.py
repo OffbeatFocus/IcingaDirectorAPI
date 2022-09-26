@@ -19,41 +19,85 @@ class Objects(Base):
     base_url_path = 'icingaweb2/director'
 
     @staticmethod
-    def _convert_object_type(object_type=None, mode='multi'):
+    def _get_endpoint(object_type=None, mode=None):
         """
-        check if the object_type is a valid Icinga Director object type
+        validate object_type and return Icinga Director API endpoint
         """
 
-        type_conv = {
-            'Command': ['commands', 'command?name='],
-            'CommandTemplate': ['commands', 'command?name='],
-            'Endpoint': ['endpoints', 'endpoint?name='],
-            'Host': ['hosts', 'host?name='],
-            'HostGroup': ['hostgroups', 'hostgroup?name='],
-            'HostTemplate': ['hosts/templates', 'host?name='],
-            'Notification': ['notifications/applyrules', 'notification?name='],
-            'NotificationTemplate': ['notifications/templates', 'notification?name='],
-            'Service': ['services', 'service?host=&name='],
-            'ServiceApplyRule': ['services/applyrules', 'service?id='],
-            'ServiceGroup': ['servicegroups', 'servicegroup?name='],
-            'ServiceTemplate': ['services/templates', 'service?name='],
-            'Timeperiod': ['timeperiods', 'timeperiod?name='],
-            'TimeperiodTemplate': ['timeperiods/templates', 'timeperiod?name='],
-            'User': ['users', 'user?name='],
-            'UserGroup': ['usergroups', 'usergroup?name='],
-            'UserTemplate': ['users/templates', 'user?name='],
-            'Zone': ['zones', 'zone?name=']
-        }
+        allowed_types = [
+            'Command',
+            'CommandTemplate',
+            'Endpoint',
+            'Host',
+            'HostGroup',
+            'HostTemplate',
+            'Notification',
+            'NotificationTemplate',
+            'Service',
+            'ServiceApplyRule',
+            'ServiceGroup',
+            'ServiceTemplate',
+            'Timeperiod',
+            'TimeperiodTemplate',
+            'User',
+            'UserGroup',
+            'UserTemplate',
+            'Zone',
+            'SeApRuList'
+        ]
 
-        if object_type not in type_conv:
-            raise IcingaDirectorApiException(f'Icinga Director object type "{object_type}" does not exist.')
+        if object_type not in allowed_types:
+            raise IcingaDirectorApiException(f'Icinga Director object type "{object_type}" does not exist '
+                                             f'(or is not supported yet).')
 
-        if mode == 'multi':
-            return type_conv[object_type][0]
-        elif mode == 'single':
-            return type_conv[object_type][1]
+        if mode == 'list':
+            if object_type.startswith('Command'):
+                return 'commands'
+            elif object_type.endswith('Template'):
+                return object_type.lower().replace('template', 's/templates')
+            elif object_type == 'Notification' or object_type == 'ServiceApplyRule':
+                return object_type.replace('ApplyRule', '').lower() + 's/applyrules'
+            elif object_type == 'SeApRuList':
+                return "serviceapplyrules"
+            else:
+                return object_type.lower() + 's'
+        elif mode == 'create' or mode == 'delete' or mode == 'get' or mode == 'modify':
+            return object_type.lower().replace('template', '').replace('applyrule', '')
         else:
-            raise IcingaDirectorApiException(f'API request mode "{mode}" does not exist.')
+            raise IcingaDirectorApiException(f'API request mode "{mode}" does not exist. '
+                                             f'Allowed values: ["create", "delete", "get", "list", "modify"]')
+
+    def _get_selector(self,
+                      object_type=None,
+                      name=None):
+        """
+        return object selector for given object_type
+        """
+
+        if object_type == 'Service':
+            if name.count('!') != 1:
+                raise IcingaDirectorApiException(f'Service object must have form "hostname!servicename".')
+            splitnames: list = name.split('!')
+            return f'host={splitnames[0]}&name={splitnames[1]}'
+        elif object_type == 'ServiceApplyRule':
+            return f'id={self._get_serviceapplyrule_id(name)}'
+        else:
+            return f'name={name}'
+
+    def _get_serviceapplyrule_id(self,
+                                 name):
+        """
+        get internal id of serviceapplyrule by given name
+        """
+
+        applyrules: list = [a for a in self.list('SeApRuList') if a['object_name'] == name]
+        found_rules: int = len(applyrules)
+        if found_rules == 1:
+            return applyrules.pop()['id']
+        if found_rules == 0:
+            raise IcingaDirectorApiException(f'ServiceApplyRule {name} does not exist in Icinga Director.')
+        else:
+            raise IcingaDirectorApiException(f'ServiceApplyRule could not be uniquely identified with name {name}')
 
     def get(self,
             object_type,
@@ -76,17 +120,10 @@ class Objects(Base):
         get('ServiceApplyRule', 'ping4')
         """
 
-        object_type_url_path = self._convert_object_type(object_type, 'single')
-        url_path = f'{self.base_url_path}/{object_type_url_path}{name}'
+        endpoint = self._get_endpoint(object_type, 'get')
+        selector = self._get_selector(object_type, name)
 
-        if object_type == 'Service':
-
-            if name.count('!') != 1:
-                raise IcingaDirectorApiException(f'Service object must have form "hostname!servicename".')
-
-            splitnames: list = name.split('!')
-            object_type_url_path = object_type_url_path.replace('&', splitnames[0] + '&') + splitnames[1]
-            url_path = f'{self.base_url_path}/{object_type_url_path}'
+        url_path = f'{self.base_url_path}/{endpoint}?{selector}'
 
         return self._request('GET', url_path)
 
@@ -111,13 +148,18 @@ class Objects(Base):
         list('Host', query='webserver')
         """
 
-        object_type_url_path = self._convert_object_type(object_type, 'multi')
+        object_type_url_path = self._get_endpoint(object_type, 'list')
         url_path = f'{self.base_url_path}/{object_type_url_path}'
 
         if query:
             url_path += f'?q={query}'
 
-        return self._request('GET', url_path)['objects']
+        if object_type == 'Command':
+            return [c for c in self._request('GET', url_path)['objects'] if c["object_type"] == "object"]
+        elif object_type == 'CommandTemplate':
+            return [c for c in self._request('GET', url_path)['objects'] if c["object_type"] == "template"]
+        else:
+            return self._request('GET', url_path)['objects']
 
     def create(self,
                object_type,
@@ -146,7 +188,9 @@ class Objects(Base):
                ['generic-service'])
         """
 
-        object_type_url_path = self._convert_object_type(object_type, 'single').split('?')[0]
+        endpoint: str = self._get_endpoint(object_type, 'create')
+
+        url_path = f'{self.base_url_path}/{endpoint}'
 
         if object_type.endswith('Template'):
             object_type = 'template'
@@ -163,16 +207,14 @@ class Objects(Base):
         if templates:
             payload['imports'] = templates
 
-        url_path = f'{self.base_url_path}/{object_type_url_path}'
-
         return self._request('POST', url_path, payload)
 
-    def update(self,
+    def modify(self,
                object_type,
                name,
                attrs):
         """
-        update an object
+        modify an object
 
         :param object_type: type of the object
         :type object_type: string
@@ -182,28 +224,21 @@ class Objects(Base):
         :type attrs: dictionary
 
         example 1:
-        update('Host', 'localhost', {'address': '127.0.1.1'})
+        modify('Host', 'localhost', {'address': '127.0.1.1'})
 
         example 2:
-        update('Service', 'testhost3!dummy', {'check_interval': '10m'})
+        modify('Service', 'testhost3!dummy', {'check_interval': '10m'})
         """
-        object_type_url_path = self._convert_object_type(object_type)
-        url_path = f'{self.base_url_path}/{object_type_url_path}{name}'
+        endpoint: str = self._get_endpoint(object_type, 'modify')
+        selector = self._get_selector(object_type, name)
 
-        if object_type == 'Service':
-
-            if name.count('!') != 1:
-                raise IcingaDirectorApiException(f'Service object must have form "hostname!servicename".')
-
-            splitnames: list = name.split('!')
-            object_type_url_path = object_type_url_path.replace('&', splitnames[0] + '&') + splitnames[1]
-            url_path = f'{self.base_url_path}/{object_type_url_path}'
+        url_path = f'{self.base_url_path}/{endpoint}?{selector}'
 
         return self._request('POST', url_path, attrs)
 
     def delete(self,
                object_type,
-               name=None):
+               name):
         """
         delete an object
 
@@ -219,19 +254,9 @@ class Objects(Base):
         delete('Service', 'testhost3!dummy')
         """
 
-        object_type_url_path = self._convert_object_type(object_type, 'single')
-        url_path = f'{self.base_url_path}/{object_type_url_path}{name}'
+        endpoint = self._get_endpoint(object_type, 'delete')
+        selector = self._get_selector(object_type, name)
 
-        if object_type == 'Service':
-
-            if name.count('!') != 1:
-                raise IcingaDirectorApiException(f'Service object must have form "hostname!servicename".')
-
-            splitnames: list = name.split('!')
-            object_type_url_path = object_type_url_path.replace('&', splitnames[0] + '&') + splitnames[1]
-            url_path = f'{self.base_url_path}/{object_type_url_path}'
+        url_path = f'{self.base_url_path}/{endpoint}?{selector}'
 
         return self._request('DELETE', url_path)
-
-# TODO: add filter to only list commands or commandtemplates (same endpoint)
-# TODO: add id-lookup method for handling serviceapplyrules (name does not work)
