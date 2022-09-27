@@ -3,15 +3,17 @@
 Icinga Director API client base
 """
 
+from urllib.parse import urljoin
+
 import logging
 import requests
-from urllib.parse import urljoin
-from IcingaDirectorAPI.exceptions import *
+
+from IcingaDirectorAPI.exceptions import IcingaDirectorApiRequestException
 
 LOG = logging.getLogger(__name__)
 
 
-class Base(object):
+class Base:  # pylint: disable=too-few-public-methods
     """
     Icinga Director API Base Class
     """
@@ -69,10 +71,7 @@ class Base(object):
 
         if not 200 <= response.status_code <= 299:
             raise IcingaDirectorApiRequestException(
-                'Request "{}" failed with status {}: {}'.format(
-                    response.url,
-                    response.status_code,
-                    response.text,
-                ), response.json())
+                f'Request "{response.url}" failed with status {response.status_code}:'
+                f' {response.text}', response.json())
 
         return response.json()

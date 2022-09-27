@@ -10,7 +10,7 @@ class IcingaDirectorApiException(Exception):
     """
 
     def __init__(self, error):
-        super(IcingaDirectorApiException, self).__init__(error)
+        super().__init__(error)
         self.error = error
 
     def __str__(self):
@@ -24,5 +24,5 @@ class IcingaDirectorApiRequestException(IcingaDirectorApiException):
     response = {}
 
     def __init__(self, error, response):
-        super(IcingaDirectorApiRequestException, self).__init__(error)
+        super().__init__(error)
         self.response = response

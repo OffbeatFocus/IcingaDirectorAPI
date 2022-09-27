@@ -12,7 +12,7 @@ from IcingaDirectorAPI import __version__
 LOG = logging.getLogger(__name__)
 
 
-class Director(object):
+class Director:  # pylint: disable=too-few-public-methods
     """
     Icinga Director Client class
     """
@@ -35,6 +35,4 @@ class Director(object):
         if not self.url:
             raise IcingaDirectorApiException('No "url" defined.')
         if not self.username or not self.password:
-            raise IcingaDirectorApiException(
-                'username and/or password not defined.'
-            )
+            raise IcingaDirectorApiException('username and/or password not defined.')

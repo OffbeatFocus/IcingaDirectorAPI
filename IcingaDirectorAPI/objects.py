@@ -46,23 +46,23 @@ class Objects(Base):
         ]
 
         if object_type not in allowed_types:
-            raise IcingaDirectorApiException(f'Icinga Director object type "{object_type}" does not exist '
-                                             f'(or is not supported yet).')
+            raise IcingaDirectorApiException(f'Icinga Director object type "{object_type}" does '
+                                             f'not exist or is not supported yet).')
 
         if mode == 'list':
             if object_type.startswith('Command'):
                 return 'commands'
-            elif object_type.endswith('Template'):
+            if object_type.endswith('Template'):
                 return object_type.lower().replace('template', 's/templates')
-            elif object_type == 'Notification' or object_type == 'ServiceApplyRule':
+            if object_type in ['Notification', 'ServiceApplyRule']:
                 return object_type.replace('ApplyRule', '').lower() + 's/applyrules'
-            else:
-                return object_type.lower() + 's'
-        elif mode == 'create' or mode == 'delete' or mode == 'get' or mode == 'modify':
+            return object_type.lower() + 's'
+
+        if mode in ['create', 'delete', 'get', 'modify']:
             return object_type.lower().replace('template', '').replace('applyrule', '')
-        else:
-            raise IcingaDirectorApiException(f'API request mode "{mode}" does not exist. '
-                                             f'Allowed values: ["create", "delete", "get", "list", "modify"]')
+
+        raise IcingaDirectorApiException(f'API request mode "{mode}" does not exist. Allowed '
+                                         f'values: ["create", "delete", "get", "list", "modify"]')
 
     def _get_selector(self,
                       object_type=None,
@@ -73,13 +73,15 @@ class Objects(Base):
 
         if object_type == 'Service':
             if name.count('!') != 1:
-                raise IcingaDirectorApiException(f'Service object must have form "hostname!servicename".')
+                raise IcingaDirectorApiException('Service object must have form '
+                                                 '"hostname!servicename".')
             splitnames: list = name.split('!')
             return f'host={splitnames[0]}&name={splitnames[1]}'
-        elif object_type == 'ServiceApplyRule':
+
+        if object_type == 'ServiceApplyRule':
             return f'id={self._get_serviceapplyrule_id(name)}'
-        else:
-            return f'name={name}'
+
+        return f'name={name}'
 
     def _get_serviceapplyrule_id(self,
                                  name):
@@ -87,15 +89,16 @@ class Objects(Base):
         get internal id of serviceapplyrule by given name
         """
 
-        applyrules: list = [a for a in self._request('GET', f'{self.base_url_path}/serviceapplyrules')['objects']
+        applyrules: list = [a for a in
+                            self._request('GET',
+                                          f'{self.base_url_path}/serviceapplyrules')['objects']
                             if a['object_name'] == name]
-        found_rules: int = len(applyrules)
-        if found_rules == 1:
+
+        if len(applyrules) == 1:
             return applyrules.pop()['id']
-        if found_rules == 0:
-            raise IcingaDirectorApiException(f'ServiceApplyRule {name} does not exist in Icinga Director.')
-        else:
-            raise IcingaDirectorApiException(f'ServiceApplyRule could not be uniquely identified with name {name}')
+
+        raise IcingaDirectorApiException(f'ServiceApplyRule {name} does not exist in '
+                                         f'Icinga Director or could not be uniquely identified.')
 
     def get(self,
             object_type,
@@ -153,11 +156,14 @@ class Objects(Base):
             url_path += f'?q={query}'
 
         if object_type == 'Command':
-            return [c for c in self._request('GET', url_path)['objects'] if c["object_type"] == "object"]
-        elif object_type == 'CommandTemplate':
-            return [c for c in self._request('GET', url_path)['objects'] if c["object_type"] == "template"]
-        else:
-            return self._request('GET', url_path)['objects']
+            return [c for c in
+                    self._request('GET', url_path)['objects'] if c["object_type"] == "object"]
+
+        if object_type == 'CommandTemplate':
+            return [c for c in
+                    self._request('GET', url_path)['objects'] if c["object_type"] == "template"]
+
+        return self._request('GET', url_path)['objects']
 
     def create(self,
                object_type,
@@ -177,7 +183,10 @@ class Objects(Base):
         :type attrs: dictionary
 
         example 1:
-        create('Host', 'localhost', ['generic-host'], {'address': '127.0.0.1', 'vars': {'os': 'Linux'}})
+        create('Host',
+               'localhost',
+               ['generic-host'],
+               {'address': '127.0.0.1', 'vars': {'os': 'Linux'}})
 
         example 2:
         create('Service',
