@@ -27,7 +27,7 @@ class Base:  # pylint: disable=too-few-public-methods
 
         self.manager = manager
 
-    def _create_session(self):
+    def _create_session(self) -> requests.Session:
         """
         create a session object
         """
@@ -38,7 +38,10 @@ class Base:  # pylint: disable=too-few-public-methods
 
         return session
 
-    def _request(self, method, url_path, payload=None):
+    def _request(self,
+                 method: str,
+                 url_path: str,
+                 payload: dict = None) -> dict:
         """
         make the request and return the body
 

@@ -19,7 +19,8 @@ class Objects(Base):
     base_url_path = 'icingaweb2/director'
 
     @staticmethod
-    def _get_endpoint(object_type=None, mode=None):
+    def _get_endpoint(object_type: str,
+                      mode: str) -> str:
         """
         validate object_type and return Icinga Director API endpoint
         """
@@ -65,8 +66,8 @@ class Objects(Base):
                                          f'values: ["create", "delete", "get", "list", "modify"]')
 
     def _get_selector(self,
-                      object_type=None,
-                      name=None):
+                      object_type: str,
+                      name: str) -> str:
         """
         return object selector for given object_type
         """
@@ -84,7 +85,7 @@ class Objects(Base):
         return f'name={name}'
 
     def _get_serviceapplyrule_id(self,
-                                 name):
+                                 name: str) -> int:
         """
         get internal id of serviceapplyrule by given name
         """
@@ -101,8 +102,8 @@ class Objects(Base):
                                          f'Icinga Director or could not be uniquely identified.')
 
     def get(self,
-            object_type,
-            name):
+            object_type: str,
+            name: str) -> dict:
         """
         get object of given type by given name
 
@@ -129,8 +130,8 @@ class Objects(Base):
         return self._request('GET', url_path)
 
     def list(self,
-             object_type,
-             query=None):
+             object_type: str,
+             query: str = None) -> list:
         """
         list or filter all objects of given type (by name)
 
@@ -166,10 +167,10 @@ class Objects(Base):
         return self._request('GET', url_path)['objects']
 
     def create(self,
-               object_type,
-               name,
-               templates=None,
-               attrs=None):
+               object_type: str,
+               name: str,
+               templates: list = None,
+               attrs: dict = None) -> dict:
         """
         create an object
 
@@ -217,9 +218,9 @@ class Objects(Base):
         return self._request('POST', url_path, payload)
 
     def modify(self,
-               object_type,
-               name,
-               attrs):
+               object_type: str,
+               name: str,
+               attrs: dict) -> dict:
         """
         modify an object
 
@@ -244,8 +245,8 @@ class Objects(Base):
         return self._request('POST', url_path, attrs)
 
     def delete(self,
-               object_type,
-               name):
+               object_type: str,
+               name: str) -> dict:
         """
         delete an object
 
