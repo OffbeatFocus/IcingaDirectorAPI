@@ -65,8 +65,8 @@ class Objects(Base):
         raise IcingaDirectorApiException(f'API request mode "{mode}" does not exist. Allowed '
                                          f'values: ["create", "delete", "get", "list", "modify"]')
 
-    def _get_selector(self,
-                      object_type: str,
+    @staticmethod
+    def _get_selector(object_type: str,
                       name: str) -> str:
         """
         return object selector for given object_type
@@ -79,27 +79,7 @@ class Objects(Base):
             splitnames: list = name.split('!')
             return f'host={splitnames[0]}&name={splitnames[1]}'
 
-        if object_type == 'ServiceApplyRule':
-            return f'id={self._get_serviceapplyrule_id(name)}'
-
         return f'name={name}'
-
-    def _get_serviceapplyrule_id(self,
-                                 name: str) -> int:
-        """
-        get internal id of serviceapplyrule by given name
-        """
-
-        applyrules: list = [a for a in
-                            self._request('GET',
-                                          f'{self.base_url_path}/serviceapplyrules')['objects']
-                            if a['object_name'] == name]
-
-        if len(applyrules) == 1:
-            return applyrules.pop()['id']
-
-        raise IcingaDirectorApiException(f'ServiceApplyRule {name} does not exist in '
-                                         f'Icinga Director or could not be uniquely identified.')
 
     def get(self,
             object_type: str,
@@ -202,7 +182,7 @@ class Objects(Base):
 
         if object_type.endswith('Template'):
             object_type = 'template'
-        elif object_type == 'ServiceApplyRule':
+        elif object_type in ['Notification', 'ServiceApplyRule']:
             object_type = 'apply'
         else:
             object_type = 'object'
