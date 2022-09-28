@@ -4,7 +4,7 @@ Icinga Director API functionality tests
 """
 
 from test_objects import test_objects
-from IcingaDirectorAPI.director import Director
+from IcingaDirectorAPI.director import Director  # pylint: disable=import-error
 
 # default credentials & localhost for testing, e.g. with a local container
 director = Director('http://localhost', 'icingaadmin', 'icinga')
