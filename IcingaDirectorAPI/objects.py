@@ -202,6 +202,8 @@ class Objects(Base):
 
         if object_type.endswith('Template'):
             object_type = 'template'
+        elif object_type == 'ServiceApplyRule':
+            object_type = 'apply'
         else:
             object_type = 'object'
 
