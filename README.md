@@ -1,6 +1,7 @@
 # IcingaDirectorAPI
 
 IcingaDirectorAPI is a small module to interact with the [Icinga Director REST API](https://icinga.com/docs/icinga-director/latest/doc/70-REST-API/), written in [Python](http://www.python.org).
+It is compatible with the most recent Director version (1.10) only.
 
 # Features
 
@@ -47,7 +48,7 @@ For now:
 
 ## list()
 
-To get a list of all objects of the same type use the funtion `objects.list()`.
+To get a list of all objects of the same type use the function `objects.list()`.
 
 | Parameter    | Type   | Description                           |
 |--------------|--------|---------------------------------------|
@@ -176,4 +177,4 @@ Delete ServiceTemplate "generic-service":
 
     director.objects.delete('ServiceTemplate', 'generic-service')
 
-*IMPORTANT*: If the object, that is supposed to be deleted is still referenced in the definition of other objects (e.g. a ServiceTemplate used by Services), it cannot be deleted or Director will throw an error. It has to be removed from the object definitions prior to the delete request.
+__**IMPORTANT**__: If the object, that is supposed to be deleted is still referenced in the definition of other objects (e.g. a ServiceTemplate used by Services), it cannot be deleted or Director will throw an error. It has to be removed from the object definitions prior to the delete request.
