@@ -95,7 +95,7 @@ Create an object using `templates` and specify attributes (`attrs`).
 | Parameter    | Type       | Description                                  |
 |--------------|------------|----------------------------------------------|
 | object\_type | string     | **Required.** The object's type.             |
- | name         | string     | **Optional.** The objects name.              |
+ | name         | string     | **Required.** The objects name.              |
  | templates    | list       | **Optional.** A list of templates to import. |
  | attrs        | dictionary | **Optional.** The objects attributes.        |
 
@@ -134,47 +134,46 @@ If other objects are referenced through the JSON/dict definition, they have to e
 
 Modify attributes of an existing object.
 
-| Parameter    | Type       | Description                                                   |
-|--------------|------------|---------------------------------------------------------------|
-| object\_type | string     | **Required.** The object type to get, e.g. `Host`, `Service`. |
-| name         | string     | **Optional.** The objects name.                               |
-| attrs        | dictionary | **Optional.** The objects attributes.                         |
+| Parameter    | Type       | Description                           |
+|--------------|------------|---------------------------------------|
+| object\_type | string     | **Required.** The object type to get  |
+| name         | string     | **Required.** The objects name.       |
+| attrs        | dictionary | **Required.** The objects attributes. |
 
 Examples:
 
 Change the ip address of a host:
 
-    client.objects.update(
+    director.objects.modify(
         'Host',
         'localhost',
         {'address': '127.0.1.1'})
 
-Update a service and change the check interval:
+Change the used templates and the check interval of a Service:
 
-    client.objects.create('Service',
+    director.objects.modify('Service',
            'localhost!dummy',
            ['generic-service'],
            {'check_interval': '10m'})
 
 
-## <a id="objects-delete"></a> objects.delete()
+## delete()
 
-Update an object with the specified attributes.
+Delete a single object.
 
-  Parameter     | Type       | Description
-  --------------|------------|--------------
-  object\_type  | string     | **Required.** The object type to get, e.g. `Host`, `Service`.
-  name          | string     | **Optional.** The objects name.
-  filters       | string     | **Optional.** Filter expression for matching the objects.
-  filter\_vars  | dictionary | **Optional.** Variables which are available to your filter expression.
-  cascade       | boolean    | **Optional.** Also delete dependent objects. Defaults to `True`.
+| Parameter    | Type   | Description                          |
+|--------------|--------|--------------------------------------|
+| object\_type | string | **Required.** The object type to get |
+| name         | string | **Required.** The objects name.      |
 
 Examples:
 
-Delete the "localhost":
+Delete Host "localhost":
 
-    client.objects.delete('Host', 'localhost')
+    director.objects.delete('Host', 'localhost')
 
-Delete all services matching `vhost\*`:
+Delete ServiceTemplate "generic-service":
 
-    client.objects.delete('Service', filters='match("vhost\*", service.name)')
+    director.objects.delete('ServiceTemplate', 'generic-service')
+
+*IMPORTANT*: If the object, that is supposed to be deleted is still referenced in the definition of other objects (e.g. a ServiceTemplate used by Services), it cannot be deleted or Director will throw an error. It has to be removed from the object definitions prior to the delete request.
