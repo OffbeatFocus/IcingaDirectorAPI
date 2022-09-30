@@ -58,11 +58,11 @@ Examples:
 
 Get all hosts:
 
-    client.objects.list('Host')
+    director.objects.list('Host')
 
 Get all timeperiods:
 
-    client.objects.list('Timeperiod')
+    director.objects.list('Timeperiod')
 
 
 ## get()
