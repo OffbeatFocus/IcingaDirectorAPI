@@ -1,5 +1,4 @@
 # TODO
-- test every method with different inputs
 - error handling (or prevention) for json decode errors (e.g. when trying to delete a template that's still referenced by another object)
 - documentation
 - QoL: implement input validation / provide some guidance on how object-json-definitions need to look like
