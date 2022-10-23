@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "IcingaDirectorAPI"
-version = "1.0.4"
+version = "1.0.5"
 authors = [
   { name="Offbeat Focus", email="offbeatfocus@protonmail.com" },
 ]
 description = "Python library for the Icinga Director RESTful API"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.6"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
