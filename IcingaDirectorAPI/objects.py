@@ -193,7 +193,7 @@ class Objects(Base):
         }
 
         if attrs:
-            payload |= attrs
+            payload = {**payload, **attrs}
         if templates:
             payload['imports'] = templates
 
