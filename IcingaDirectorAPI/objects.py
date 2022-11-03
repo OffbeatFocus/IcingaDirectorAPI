@@ -66,18 +66,27 @@ class Objects(Base):
                                          f'values: ["create", "delete", "get", "list", "modify"]')
 
     @staticmethod
-    def _get_selector(object_type: str,
+    def _split_service_name(name: str) -> tuple:
+        """
+        separate host and service name
+        """
+
+        if name.count('!') != 1:
+            raise IcingaDirectorApiException(
+                'Service object must have form "hostname!servicename".')
+        splitnames: list = name.split('!')
+        return splitnames[0], splitnames[1]
+
+    def _get_selector(self,
+                      object_type: str,
                       name: str) -> str:
         """
         return object selector for given object_type
         """
 
         if object_type == 'Service':
-            if name.count('!') != 1:
-                raise IcingaDirectorApiException('Service object must have form '
-                                                 '"hostname!servicename".')
-            splitnames: list = name.split('!')
-            return f'host={splitnames[0]}&name={splitnames[1]}'
+            host, service = self._split_service_name(name)
+            return f'host={host}&name={service}'
 
         return f'name={name}'
 
@@ -180,6 +189,10 @@ class Objects(Base):
 
         url_path = f'{self.base_url_path}/{endpoint}'
 
+        host: str = ''
+        if object_type == 'Service':
+            host, name = self._split_service_name(name)
+
         if object_type.endswith('Template'):
             object_type = 'template'
         elif object_type in ['Notification', 'ServiceApplyRule']:
@@ -191,6 +204,9 @@ class Objects(Base):
             'object_name': name,
             'object_type': object_type,
         }
+
+        if host:
+            payload['host'] = host
 
         if attrs:
             payload = {**payload, **attrs}
