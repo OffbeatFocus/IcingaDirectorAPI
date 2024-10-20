@@ -40,9 +40,15 @@ def create_test():
                                             attrs=object_definition['attrs'])
 
                 else:
-                    director.objects.create(object_type, object_name,
-                                            object_definition['templates'],
-                                            object_definition['attrs'])
+                    if object_type == 'Service':
+                        hostname: str = object_definition['attrs']['host']
+                        director.objects.create(object_type, f'{hostname}!{object_name}',
+                                                object_definition['templates'],
+                                                object_definition['attrs'])
+                    else:
+                        director.objects.create(object_type, object_name,
+                                                object_definition['templates'],
+                                                object_definition['attrs'])
             else:
                 print(f'trying to get object {object_name} ...')
                 if object_type == 'Service':
@@ -134,5 +140,5 @@ def delete_test():
 
 if __name__ == '__main__':
     create_test()
-    modify_test()
-    delete_test()
+    #modify_test()
+    #delete_test()
